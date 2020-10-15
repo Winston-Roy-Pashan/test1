@@ -1,12 +1,10 @@
-'use strict';
-//const { Mongoose } = require('mongoose');
-const Book = require('../model/book.model');
 
+const Book = require('../model/book.model');
 
 // Create and Save a new Note
 exports.create = (req, res) => {
     // Validate request
-console.log("--------------------body",req.body);
+    console.log("--------------------body", req.body)
     // console.log("re.body", req.body)
     if (!req.body.title) {
         //400 - status code
@@ -17,12 +15,11 @@ console.log("--------------------body",req.body);
 
     // Create a Note
     const book = new Book({
-        title:req.body.title,
-        author:req.body.author,
-      //  author:{type:Mongoose.Schema.Types.ObjectId,ref:'author'},
-        price:req.body.price,
-        publishedDate:req.body.publishedDate,
-        publisher:req.body.publisher
+        title: req.body.title,
+        author: req.body.author,
+        price: req.body.price,
+        publishedDate: req.body.publishedDate,
+        publisher: req.body.publisher
     });
 
     // Save Note in the database
@@ -52,18 +49,25 @@ console.log("--------------------body",req.body);
 
 // Retrieve and return all notes from the database.
 exports.findAll = (req, res) => {
-let limit=parseInt(req.query.limit);
-let skip=parseInt(req.query.skip);
-let sortField=(req.query.sorField);
-let sortOrder=parseInt(req.query.sortOrder);
-//let limit=parseInt(req.query.limit);
+    var limit = parseInt(req.query.limit);
+    var skip = parseInt(req.query.skip);
+    var sortField = req.query.sortField;
+    var sortOrder = parseInt(req.query.sortOrder);
+    console.log("--------------typeof limit", typeof (limit));
+    console.log(sortField, sortOrder);
+    // var sortObj = {
+    //     : sortOrder,
+
+    // }
+    // console.log(sortObj)
     // Finds documents.
     //Mongoose models provide several static helper functions for CRUD operations. 
     Book.find()
-    .limit(limit)
-    .skip(skip)
-    .sort({[`${sortField}`]:sortOrder})
-  .populate({ path: 'author', select: 'name' })
+        .populate({ path: 'author', select: 'name' })  //populate the author details
+        .limit(limit)
+        .skip(skip)
+        // .sort(sortField)
+        .sort({[`${sortField}`]:sortOrder})
         .then(books => {
             res.send(books);
         }).catch(err => {
@@ -82,12 +86,12 @@ exports.findOne = (req, res) => {
                 return res.status(404).send({
                     message: "Note not found with id " + req.params.bookId
                 });
-            }else{
+            } else {
                 res.send(book);
             }
-           
+
         }).catch(err => {
-            
+
             return res.status(500).send({
                 message: err
             });
@@ -106,11 +110,11 @@ exports.update = (req, res) => {
     // Find note and update it with the request body
     //An object containing properties mapped to the named route “parameters”. For example, if you have the route /user/:name, then the "name" property is available as req.params.name. This object defaults to {}.
     Book.findByIdAndUpdate(req.params.bookId, {
-        title:req.body.title,
-        author:req.body.author,
-        price:req.body.price,
-        publishedDate:req.body.publishedDate,
-        publisher:req.body.publisher
+        title: req.body.title,
+        author: req.body.author,
+        price: req.body.price,
+        publishedDate: req.body.publishedDate,
+        publisher: req.body.publisher
     }, { new: true })
         .then(book => {
             if (!book) {
@@ -141,10 +145,10 @@ exports.delete = (req, res) => {
                 return res.status(404).send({
                     message: "Book not found with id " + req.params.bookId
                 });
-            }else{
+            } else {
                 res.send({ message: "Book deleted successfully!" });
             }
-         
+
         }).catch(err => {
             return res.status(404).send({
                 message: err
