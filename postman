@@ -1,1 +1,20 @@
+exports.findAll = (req, res) => {
+    let limit = parseInt(req.query.limit);
+    let skip = parseInt(req.query.skip);
+    let sortField = (req.query.sortField);
+    let sortOrder = parseInt(req.query.sortOrder);
+    Lending.find()
+        .populate([{ path: 'customer', select: 'name' }, { path: 'book', select: 'title' , populate:{path :'author' ,select :[ 'name', 'email' , 'phone','dob']}}])
+        .select({__v:0})
+        .limit(limit)
+        .skip(skip)
+        .sort({ [`${sortField}`]: sortOrder })
+        .then(lending => {
+            res.send(lending);
+        }).catch(err => {
+            res.status(500).send({
+                message: err.message || "Some error occurred while retrieving lending."
+            });
+        });
+};
 
