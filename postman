@@ -1,20 +1,134 @@
-exports.findAll = (req, res) => {
+'use strict';
+const Lending = require('../model/lending.model');
+
+// Create and Save a new lending
+exports.create = (req, res) => {
+    // Validate request
+
+    console.log("re.body", req.body);
+    if (!req.body) {
+        return res.status(400).send({
+            message: "Lending Body  can not be empty"
+        });
+    }
+
+    // Create a lending
+    const lending = new Lending({
+        customer: req.body.customer,
+        book: req.body.book,
+        borrowDate: req.body.borrowDate,
+        dueDate: req.body.dueDate
+    });
+
+    // Save lending in the database
+    lending.save()
+        .then(data => {
+            res.send(data);
+        }).catch(err => {
+            res.status(500).send({
+                message: err.message || "Some error occurred while creating the lending."
+            });
+        });
+};
+
+ Retrieve and return all lendings from the database.
+ exports.findAll = (req, res) => {
     let limit = parseInt(req.query.limit);
     let skip = parseInt(req.query.skip);
     let sortField = (req.query.sortField);
     let sortOrder = parseInt(req.query.sortOrder);
     Lending.find()
-    .populate([{ path: 'customer', select: 'name' },{path: 'book', select:'title'}])
-    .limit(limit)
-    .skip(skip)
+        .populate([{ path: 'customer', select: 'name' }, { path: 'book', select: 'title' }])
+        .limit(limit)
+       .skip(skip)
 
-    .sort({ [`${sortField}`]: sortOrder })
-    .then(lending => {
-    res.send(lending);
-    
-    }).catch(err => {
-    res.status(500).send({
-    message: err.message || "Some error occurred while retrieving lending."
-    });
-});
+         .sort({ [`${sortField}`]: sortOrder })
+         .then(lending => {
+            res.send(lending);
+         }).catch(err => {
+             res.status(500).send({
+                message: err.message || "Some error occurred while retrieving lending."
+             });
+         });
+         };
+
+// Find a single lending with a lendingId
+exports.findOne = (req, res) => {
+    Lending.findById(req.params.lendingId)
+        .then(lending => {
+            if (!lending) {
+                return res.status(404).send({
+                    message: "lending not found with id " + req.params.lendingId
+                });
+            }
+            res.send(lending);
+        }).catch(err => {
+            if (err.kind === 'ObjectId') {
+                return res.status(404).send({
+                    message: "lending not found with id " + req.params.lendingId
+                });
+            }
+            return res.status(500).send({
+                message: "Error retrieving lending with id " + req.params.lendingId
+            });
+        });
+};
+
+// Update a lending identified by the lendingId in the request
+exports.update = (req, res) => {
+    // Validate Request
+    if (!req.body) {
+        return res.status(400).send({
+            message: "lending content can not be empty"
+        });
+    }
+
+    // Find lending and update it with the request body
+    Lending.findByIdAndUpdate(req.params.lendingId, {
+        customer: req.body.customer,
+        book: req.body.book,
+        borrowDate: req.body.Date,
+        dueDate: req.body.Date
+    }, { new: true })
+        .then(lending => {
+            if (!lending) {
+                return res.status(404).send({
+                    message: "lending not found with id " + req.params.lendingId
+                });
+            }
+            res.send(lending);
+        }).catch(err => {
+            if (err.kind === 'ObjectId') {
+                return res.status(404).send({
+                    message: "lending not found with id " + req.params.lendingId
+                });
+            }
+            return res.status(500).send({
+                message: "Error updating lending with id " + req.params.lendingId
+            });
+        });
+};
+
+
+// Delete a lending with the specified lendingId in the request
+// Delete a lending with the specified lendingId in the request
+exports.delete = (req, res) => {
+    Lending.findByIdAndRemove(req.params.lendingId)
+        .then(lending => {
+            if (!lending) {
+                return res.status(404).send({
+                    message: "lending not found with id " + req.params.lendingId
+                });
+            }
+            res.send({ message: "lending deleted successfully!" });
+        }).catch(err => {
+            if (err.kind === 'ObjectId' || err.name === 'NotFound') {
+                return res.status(404).send({
+                    message: "lending not found with id " + req.params.lendingId
+                });
+            }
+            return res.status(500).send({
+                message: "Could not delete lending with id " + req.params.lendingId
+            });
+        });
 };
